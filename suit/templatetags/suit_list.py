@@ -5,7 +5,7 @@ from django.template.loader import get_template
 from django.utils.safestring import mark_safe
 from django.contrib.admin.templatetags.admin_list import result_list
 from django.contrib.admin.views.main import ALL_VAR, PAGE_VAR
-from django.utils.html import escape
+from django.utils.html import escape, format_html
 from suit.compat import tpl_context_class
 
 try:
@@ -37,13 +37,14 @@ def paginator_number(cl, i):
                 '<li class="disabled"><a href="#" onclick="return false;">..'
                 '.</a></li>')
     elif i == cl.page_num:
-        return mark_safe(
-            '<li class="active"><a href="">%d</a></li> ' % (i + 1))
+        return format_html('<li class="active"><a href="">%d</a></li> ', i)
     else:
-        return mark_safe('<li><a href="%s"%s>%d</a></li> ' % (
-            escape(cl.get_query_string({PAGE_VAR: i})),
-            (i == cl.paginator.num_pages - 1 and ' class="end"' or ''),
-            i + 1))
+        return format_html(
+            '<li><a href="%s"%s>%d</a></li> ',
+            cl.get_query_string({PAGE_VAR: i}),
+            mark_safe(' class="end"') if i == cl.paginator.num_pages else '',
+            i
+        )
 
 
 @register.simple_tag
@@ -55,8 +56,7 @@ def paginator_info(cl):
         entries_from = 1 if paginator.count > 0 else 0
         entries_to = paginator.count
     else:
-        entries_from = (
-            (paginator.per_page * cl.page_num) + 1) if paginator.count > 0 else 0
+        entries_from = (paginator.per_page * cl.page_num) if paginator.count > 0 else 0
         entries_to = entries_from - 1 + paginator.per_page
         if paginator.count < entries_to:
             entries_to = paginator.count
@@ -82,26 +82,26 @@ def pagination(cl):
         # If there are 10 or fewer pages, display links to every page.
         # Otherwise, do some fancy
         if paginator.num_pages <= 8:
-            page_range = range(paginator.num_pages)
+            page_range = range(1, paginator.num_pages + 1)
         else:
             # Insert "smart" pagination links, so that there are always ON_ENDS
             # links at either end of the list of pages, and there are always
             # ON_EACH_SIDE links at either end of the "current page" link.
             page_range = []
-            if page_num > (ON_EACH_SIDE + ON_ENDS):
-                page_range.extend(range(0, ON_EACH_SIDE - 1))
+            if page_num > (1 + ON_EACH_SIDE + ON_ENDS):
+                page_range.extend(range(1, ON_ENDS + 1)),
                 page_range.append(DOT)
                 page_range.extend(range(page_num - ON_EACH_SIDE, page_num + 1))
             else:
-                page_range.extend(range(0, page_num + 1))
-            if page_num < (paginator.num_pages - ON_EACH_SIDE - ON_ENDS - 1):
+                page_range.extend(range(1, page_num + 1))
+            if page_num < (paginator.num_pages - ON_EACH_SIDE - ON_ENDS):
                 page_range.extend(
                     range(page_num + 1, page_num + ON_EACH_SIDE + 1))
                 page_range.append(DOT)
                 page_range.extend(
-                    range(paginator.num_pages - ON_ENDS, paginator.num_pages))
+                    range(paginator.num_pages - ON_ENDS + 1, paginator.num_pages + 1))
             else:
-                page_range.extend(range(page_num + 1, paginator.num_pages))
+                page_range.extend(range(page_num + 1, paginator.num_pages + 1))
 
     need_show_all_link = cl.can_show_all and not cl.show_all and cl.multi_page
     return {
