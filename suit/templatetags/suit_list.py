@@ -37,10 +37,10 @@ def paginator_number(cl, i):
                 '<li class="disabled"><a href="#" onclick="return false;">..'
                 '.</a></li>')
     elif i == cl.page_num:
-        return format_html('<li class="active"><a href="">%d</a></li> ', i)
+        return format_html('<li class="active"><a href="">{}</a></li> ', i)
     else:
         return format_html(
-            '<li><a href="%s"%s>%d</a></li> ',
+            '<li><a href="{}"{}>{}</a></li> ',
             cl.get_query_string({PAGE_VAR: i}),
             mark_safe(' class="end"') if i == cl.paginator.num_pages else '',
             i
