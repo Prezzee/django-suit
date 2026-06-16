@@ -70,7 +70,7 @@
                     {% filter force_escape %}
                       {% firstof user.first_name user.username %}{% endfilter %}</strong>.
                 {% endblock %}
-                <span class="user-links">
+                <div class="user-links">
                 {% block userlinks %}
                   {% url 'django-admindocs-docroot' as docsroot %}
                   {% if docsroot %}
@@ -79,9 +79,12 @@
                   {% endif %}
                   <a href="{% url 'admin:password_change' %}">{% trans 'Change password' %}</a>
                   <span class="separator">|</span>
-                  <a href="{% url 'admin:logout' %}">{% trans 'Log out' %}</a>
+                  <form id="logout-form" method="post" action="{% url 'admin:logout' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" style="background: none; border: none; padding: 0; cursor: pointer; font: inherit; color: #92D1EE;">{% trans 'Log out' %}</button>
+                  </form>
                 {% endblock %}
-                </span>
+                </div>
               </div>
             {% endif %}
             {% block nav-global %}{% endblock %}
